@@ -74,7 +74,7 @@
             },
             {
                 "producer": "image_size",
-                "consumer": "onnx2trt_app_node.image_size"
+                "consumer": "onnx_37_app_node.image_size"
             }
         ]
     }

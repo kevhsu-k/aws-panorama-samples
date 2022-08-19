@@ -3,7 +3,7 @@
         "envelopeVersion": "2021-01-01",
         "packages": [
             {
-                "name": "028663699634::onnx_37_app",
+                "name": "937544830708::onnx_37_app",
                 "version": "1.0"
             },
             {
@@ -24,7 +24,7 @@
             },
             {
                 "name": "onnx_37_app_node",
-                "interface": "028663699634::onnx_37_app.onnx_37_app_interface",
+                "interface": "937544830708::onnx_37_app.onnx_37_app_interface",
                 "overridable": false,
                 "launch": "onAppStart"
             },
@@ -60,7 +60,7 @@
             },
             {
                 "producer": "image_size",
-                "consumer": "onnx2trt_app_node.image_size"
+                "consumer": "onnx_37_app_node.image_size"
             }
         ]
     }
