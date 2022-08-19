@@ -62,7 +62,7 @@ class ObjectDetectionApp(p.node):
 
     def __init__(self):
         self.model_batch_size = self.inputs.batch_size.get()
-        self.pre_processing_output_size = 640
+        self.pre_processing_output_size = self.inputs.image_size.get()
         self.device = 'cuda' if torch.cuda.is_available() else 'cpu' 
         self.onnx = ort.InferenceSession('/panorama/onnx_model/yolov5s_fp16.onnx')
         self.io_binding = self.onnx.io_binding()
@@ -78,6 +78,7 @@ class ObjectDetectionApp(p.node):
         dimensions = list()
         stage_dimension = {'Name': 'Stage', 'Value': 'Gamma'}
         region_dimension = {'Name': 'Region', 'Value': 'us-east-1'}
+        image_dimension = {'Name': 'Image Size', 'Value': str(self.pre_processing_output_size)}
         model_name_dimension = {'Name': 'ModelName', 'Value': 'YoloV5s'}
         batch_size_dimention = {'Name': 'BatchSize', 'Value': str(self.model_batch_size)}
         app_function_dimension = {'Name': 'AppName', 'Value': 'ONNXDemo'}
@@ -86,6 +87,7 @@ class ObjectDetectionApp(p.node):
         dimensions.append(app_function_dimension)
         dimensions.append(model_name_dimension)
         dimensions.append(batch_size_dimention)
+        dimensions.append(image_dimension)
         metrics_factory = MetricsFactory(dimensions)
         self.metrics_handler = MetricsHandler("ONNXAppMetrics2", metrics_factory)
         
@@ -112,7 +114,8 @@ class ObjectDetectionApp(p.node):
 
     @metric_latency_decorator(metric_name='PreProcessBatchTime')
     def preprocess_onnx_batch(self):
-        self.preprocessed_images = np.vstack([utils.preprocess(image) for image in self.org_image_list])
+        self.preprocessed_images = np.vstack([utils.preprocess(image, 
+            self.pre_processing_output_size, self.pre_processing_output_size) for image in self.org_image_list])
         X_ortvalue = ort.OrtValue.ortvalue_from_numpy(self.preprocessed_images, 'cuda', 0)
         self.io_binding.bind_input(self.input_name, device_type=X_ortvalue.device_name(), device_id=0, element_type=np.float32, shape=X_ortvalue.shape(), buffer_ptr=X_ortvalue.data_ptr())
         self.io_binding.bind_output(self.output_name)

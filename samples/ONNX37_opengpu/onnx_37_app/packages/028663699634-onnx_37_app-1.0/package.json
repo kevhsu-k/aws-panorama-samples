@@ -20,6 +20,10 @@
                     {
                         "name": "batch_size",
                         "type": "int32"
+                    },
+                    {
+                        "name": "image_size",
+                        "type": "int32"
                     }
                 ],
                 "outputs": [
