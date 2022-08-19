@@ -47,6 +47,16 @@
                     "title": "Batch size",
                     "description": "The batch size for model inference. Batch size 8 for Jetson Xavier AGX; batch size 2 for Jetson Xavier NX module."
                 }
+            },
+            {
+                "name": "image_size",
+                "interface": "int32",
+                "value": 640,
+                "overridable": true,
+                "decorator": {
+                    "title": "Image size",
+                    "description": "The image size only support 320x320 or 640x640"
+                }
             }
         ],
         "edges": [
@@ -61,6 +71,10 @@
             {
                 "producer": "model_batch_size",
                 "consumer": "yolov5s_pt37_app_node.model_batch_size"
+            },
+            {
+                "producer": "image_size",
+                "consumer": "yolov5s_pt37_app_node.image_size"
             }
         ]
     }

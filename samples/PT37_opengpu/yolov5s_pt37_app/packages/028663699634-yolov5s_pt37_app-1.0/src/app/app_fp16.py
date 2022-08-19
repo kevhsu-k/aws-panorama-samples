@@ -39,9 +39,16 @@ class ObjectDetectionApp(p.node):
 
     def __init__(self):
         self.model_batch_size = int(self.inputs.model_batch_size.get()) or 1
-        self.pre_processing_output_size = 640
+        self.pre_processing_output_size = self.inputs.image_size.get()
         self.device = 'cuda' if torch.cuda.is_available() else 'cpu'
-        self.yolov5s = torch.jit.load('/panorama/yolov5s_model/yolov5s_half.pt', map_location=torch.device(self.device))
+        self.yolov5s = None
+        if self.pre_processing_output_size == 640:
+            self.yolov5s = torch.jit.load('/panorama/yolov5s_model/yolov5s_half.pt', map_location=torch.device(self.device))
+        elif self.pre_processing_output_size == 320:
+            self.yolov5s = torch.jit.load('/panorama/yolov5s_model/yolov5s_half_320.pt', map_location=torch.device(self.device))
+        else:
+            raise ValueError("Image size {} is not supported".format(self.pre_processing_output_size))
+        
         self.num_classes = 80
 
         # NMS: set the threshold and filtered class
@@ -57,6 +64,7 @@ class ObjectDetectionApp(p.node):
         dimensions = list()
         stage_dimension = {'Name': 'Stage', 'Value': 'Gamma'}
         region_dimension = {'Name': 'Region', 'Value': 'us-west-2'}
+        image_dimension = {'Name': 'Image Size', 'Value': str(self.pre_processing_output_size)}
         model_name_dimension = {'Name': 'ModelName', 'Value': 'YoloV5s'}
         batch_size_dimention = {'Name': 'BatchSize', 'Value': str(self.model_batch_size)}
         app_function_dimension = {'Name': 'AppName', 'Value': 'YoloPTDemo'}
@@ -65,6 +73,7 @@ class ObjectDetectionApp(p.node):
         dimensions.append(app_function_dimension)
         dimensions.append(model_name_dimension)
         dimensions.append(batch_size_dimention)
+        dimensions.append(image_dimension)
         metrics_factory = MetricsFactory(dimensions)
         self.metrics_handler = MetricsHandler("YoloAppMetrics", metrics_factory)
 
@@ -100,7 +109,9 @@ class ObjectDetectionApp(p.node):
                 input_images_batch = image_list[:self.model_batch_size]
 
                 preprocessing_metric = self.metrics_handler.get_metric('PreProcessBatchTime')
-                pre_processed_images = [torch.from_numpy(img_utils.preprocess_v2(image)).to(self.device).half() for image in input_images_batch]
+                pre_processed_images = [torch.from_numpy(img_utils.preprocess_v2(
+                    image, self.pre_processing_output_size, self.pre_processing_output_size)
+                    ).to(self.device).half() for image in input_images_batch]
 
                 # Create Torch Stack
                 pre_processed_images = torch.stack(pre_processed_images) # 4 (batch size) * [1 * 100 * 100] -> [4, 1, 100, 100]

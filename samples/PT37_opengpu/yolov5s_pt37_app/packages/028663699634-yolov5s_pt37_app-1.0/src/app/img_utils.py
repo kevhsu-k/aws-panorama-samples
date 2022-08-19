@@ -50,12 +50,12 @@ def preprocess_v1(self, img):
     return np.asarray(x1[0])
 
 # preprocess version 2, the latest one from yolov5
-def preprocess_v2(img):
+def preprocess_v2(img, h ,w):
     # resize padding
     # auto = False will use resize + padding to (640, 640)
     # auto = True will resize padding to smallest rectangle that fit the stride
     # scaleFill = True will directly resize to 640 and 640 directly (no aspect ratio resize)
-    img = letterbox(img, auto=False)[0]
+    img = letterbox(img, (h,w), auto=False)[0]
     
     img = img.transpose((2, 0, 1))  # HWC to CHW
     img = np.expand_dims(img, axis=0)
